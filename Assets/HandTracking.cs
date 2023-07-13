@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 namespace landmarktest
 {
 public class HandTracking : MonoBehaviour
@@ -19,8 +20,8 @@ public class HandTracking : MonoBehaviour
     private DepthCalibrator depthCalibrator = new DepthCalibrator(-0.0719f, 0.439f);
     private TransformLink[] transformLinkers;
     public string LinkType = "None";
-    int flagR=0;
-    int flagL=0;
+    int flagR = 0;
+    int flagL = 0;
     float Rx0 = 0;
     float Ry0 = 0;
     float Rz0 = 0;
@@ -29,6 +30,18 @@ public class HandTracking : MonoBehaviour
     float Ly0 = 0;
     float Lz0 = 0;
     float LzD = 0;
+    private float previousLeftPosition;
+    private float previousRightPosition;
+    public static bool leftStage = false;
+    public static bool rightStage = false;
+    private float changeThreshold = 200f;
+    private float leftTimeThreshold = 0.5f;
+    private float rightTimeThreshold = 0.5f;
+    private float elapsedLeftTime = 0f;
+    private float elapsedRightTime = 0f;
+    private int leftHandSwitch = 0;
+    private int rightHandSwitch = 0;
+
 
     void Awake()
     {
@@ -41,10 +54,9 @@ public class HandTracking : MonoBehaviour
     {
         string data = udpReceive.data;
         data = data.Remove(0, 1);
-        data =data.Remove(data.Length-1, 1);
+        data = data.Remove(data.Length-1, 1);
         string data1 = data;
-        print(data);
-        string[] points = null;
+        // print(data);
         string[] pointsLeft = null;
         string[] pointsRight = null;
         if(data.Contains("Left") == true && data.Contains("Right") == true)
@@ -61,17 +73,77 @@ public class HandTracking : MonoBehaviour
         {
             data =data.Remove(0,data.LastIndexOf("Left")+6);
             pointsLeft = data.Split(',');           
-            print("OnlyL"+data);
+            print("OnlyL"+pointsLeft[0]+" flag:"+leftHandSwitch);
+            //把pointsLeft[0]转换为float的currentLeftPosition
+            float currentLeftPosition = float.Parse(pointsLeft[0]);
+            //添加计时，如果在一定时间内data1[0]2s内增加超过200，就跳转到下一个场景
+            if(leftHandSwitch==1 && previousLeftPosition-currentLeftPosition>150)leftHandSwitch=2;
+            else if(leftHandSwitch==0 && Math.Abs(currentLeftPosition-previousLeftPosition)>50){
+                elapsedLeftTime = 0f;
+            }else if(leftHandSwitch==2 && Math.Abs(currentLeftPosition-previousLeftPosition)>50){
+                leftHandSwitch=0;
+                elapsedLeftTime = 0f;
+            }else{
+                if(leftHandSwitch!=1){
+                    elapsedLeftTime += Time.deltaTime;
+                    if(elapsedLeftTime > leftTimeThreshold){
+                        leftHandSwitch++;
+                        elapsedLeftTime = 0f;
+                    }
+                }
+            }
+            if(leftHandSwitch==3){
+                //切换上一个场景
+                //检查是不是第一个场景
+                udpReceive.close();
+                if(SceneManager.GetActiveScene().buildIndex == 0){
+                    SceneManager.LoadScene(SceneManager.sceneCountInBuildSettings-1);
+                }else{
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+                }
+                return;
+            }
+            previousLeftPosition = currentLeftPosition;
         }
         else if(data.Contains("Left") == false && data.Contains("Right") == true)
         {
             data1 =data1.Remove(0,data1.LastIndexOf("Right")+7);
             pointsRight = data1.Split(',');           
-            print("OnlyR"+data1);
+            print("OnlyR"+pointsRight[0]+" flag:"+rightHandSwitch);
+            //把pointsRight[0]转换为float的currentRightPosition
+            float currentRightPosition = float.Parse(pointsRight[0]);
+            //添加计时，如果在一定时间内data1[0]2s内增加超过200，就跳转到下一个场景
+            if(rightHandSwitch==1 && currentRightPosition-previousRightPosition>200)rightHandSwitch=2;
+            else if(rightHandSwitch==0 && Math.Abs(currentRightPosition-previousRightPosition)>50){
+                elapsedRightTime = 0f;
+            }else if(rightHandSwitch==2 && Math.Abs(currentRightPosition-previousRightPosition)>50){
+                rightHandSwitch=0;
+                elapsedRightTime = 0f;
+            }else{
+                if(rightHandSwitch!=1){
+                    elapsedRightTime += Time.deltaTime;
+                    if(elapsedRightTime > rightTimeThreshold){
+                        rightHandSwitch++;
+                        elapsedRightTime = 0f;
+                    }
+                }
+                
+            }
+            if(rightHandSwitch==3){
+                //切换下一个场景
+                //检查是不是最后一个场景
+                udpReceive.close();
+                if(SceneManager.GetActiveScene().buildIndex == SceneManager.sceneCountInBuildSettings-1){
+                    SceneManager.LoadScene(0);
+                }else{
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+                }
+                return;
+            }
+            previousRightPosition = currentRightPosition;
         }
 
-
-        //updateLandmarkPosition
+        //updateLandmarkPosition 更新手部关键点位置
         if(LinkType == "Left" && pointsLeft != null)
         {
             for (int i = 1; i<handPoints.Count; i++)
@@ -80,14 +152,14 @@ public class HandTracking : MonoBehaviour
             float x = float.Parse(pointsLeft[i*4])-float.Parse(pointsLeft[0]);
             float y = float.Parse(pointsLeft[i*4+1])-float.Parse(pointsLeft[1]);
             float z = float.Parse(pointsLeft[i*4+2])-float.Parse(pointsLeft[2]);
-            print("X"+x);
+            // print("LX"+x);
 
             LzD = float.Parse(pointsLeft[i*4+3]);
 
             if (x == 0 && y == 0 && z == 0)
                 return;
 
-            handPoints[i].transform.localPosition = new Vector3(x,y,z);         
+            handPoints[i].transform.localPosition = (new Vector3(x,y,z)) * 1;         
 
             }
         }
@@ -100,13 +172,14 @@ public class HandTracking : MonoBehaviour
             float x = float.Parse(pointsRight[i*4])-float.Parse(pointsRight[0]);
             float y = float.Parse(pointsRight[i*4+1])-float.Parse(pointsRight[1]);
             float z = float.Parse(pointsRight[i*4+2])-float.Parse(pointsRight[2]);
+            // print("RX"+x);
 
             RzD = float.Parse(pointsRight[i*4+3]);
 
             if (x == 0 && y == 0 && z == 0)
                 return;
 
-            handPoints[i].transform.localPosition = new Vector3(x,y,z);         
+            handPoints[i].transform.localPosition = (new Vector3(x,y,z)) * 1;         
 
             }
         }
@@ -130,7 +203,7 @@ public class HandTracking : MonoBehaviour
         
         
 
-        //updateLandmarkScale
+        //updateLandmarkScale 更新手部关键点大小
         var pointA = new Vector3(float.Parse(pointsRight[0]), float.Parse(pointsRight[1]), float.Parse(pointsRight[2]));
         var pointB = new Vector3(float.Parse(pointsRight[4]), float.Parse(pointsRight[5]), float.Parse(pointsRight[6]));
         var thumbDetectedLength = Vector3.Distance(pointA, pointB);

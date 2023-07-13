@@ -43,4 +43,9 @@ public class UDPReceive : MonoBehaviour
             }
         }
     }
+
+    public void close(){
+        //关闭线程，避免无法重复开启
+        receiveThread.Abort();
+    }
 }

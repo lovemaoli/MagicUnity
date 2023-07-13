@@ -13,6 +13,8 @@ public class PickUp : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //untiy控制台输出flag
+        print(flag);
         DistanceHand();
         GrabbingItems();
         if (flag == 1)
