@@ -1,6 +1,6 @@
 using System;
 using System.Data.Common;
-//using System.Net.Sockets;
+// using System.Net.Sockets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -33,7 +33,7 @@ public class HandTracking : MonoBehaviour
     float LzD = 0;
     private float previousLeftPosition;
     private float previousRightPosition;
-    public static bool leftStage = false;//还没写，切换场景的动画后续再说
+    public static bool leftStage = false;
     public static bool rightStage = false;
     //切换场景的相关变量
     private float leftTimeThreshold = 0.5f;
@@ -90,7 +90,7 @@ public class HandTracking : MonoBehaviour
                 leftHandSwitch=0;
                 elapsedLeftTime = 0f;
             }else{
-                if(leftHandSwitch!=1){
+                if(leftHandSwitch!=1 && leftHandSwitch<=3){
                     elapsedLeftTime += Time.deltaTime;
                     if(elapsedLeftTime > leftTimeThreshold){
                         leftHandSwitch++;
@@ -100,13 +100,13 @@ public class HandTracking : MonoBehaviour
             }
             if(leftHandSwitch==3){
                 //切换上一个场景
-                //检查是不是第一个场景
                 udpReceive.close();
                 if(SceneManager.GetActiveScene().buildIndex == 0){
                     SceneManager.LoadScene(SceneManager.sceneCountInBuildSettings-1);
                 }else{
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
                 }
+                // leftStage = true;
                 return;
             }
             previousLeftPosition = currentLeftPosition;
@@ -127,7 +127,7 @@ public class HandTracking : MonoBehaviour
                 rightHandSwitch=0;
                 elapsedRightTime = 0f;
             }else{
-                if(rightHandSwitch!=1){
+                if(rightHandSwitch!=1 && rightHandSwitch<=3){
                     elapsedRightTime += Time.deltaTime;
                     if(elapsedRightTime > rightTimeThreshold){
                         rightHandSwitch++;
@@ -138,13 +138,13 @@ public class HandTracking : MonoBehaviour
             }
             if(rightHandSwitch==3){
                 //切换下一个场景
-                //检查是不是最后一个场景
                 udpReceive.close();
                 if(SceneManager.GetActiveScene().buildIndex == SceneManager.sceneCountInBuildSettings-1){
                     SceneManager.LoadScene(0);
                 }else{
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
                 }
+                // rightStage = true;
                 return;
             }
             previousRightPosition = currentRightPosition;

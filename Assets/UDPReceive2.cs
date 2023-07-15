@@ -6,11 +6,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-public class UDPReceive : MonoBehaviour
+public class UDPReceive2 : MonoBehaviour
 {
     Thread receiveThread;
     UdpClient client = null;
-    public int port = 50557;
+    public int port = 50558;
     public bool startRecieving = true;
     public bool printToConsole = false;
     public string data;
