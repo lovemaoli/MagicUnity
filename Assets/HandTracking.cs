@@ -17,6 +17,7 @@ public class HandTracking : MonoBehaviour
     [SerializeField]
     private float thumbModelLength = 0.03f;
     private float scale;
+    public Transform scaleTransform;
     private DepthCalibrator depthCalibrator = new DepthCalibrator(-0.0719f, 0.439f);
     private TransformLink[] transformLinkers;
     public string LinkType = "None";
@@ -32,16 +33,20 @@ public class HandTracking : MonoBehaviour
     float LzD = 0;
     private float previousLeftPosition;
     private float previousRightPosition;
-    public static bool leftStage = false;
+    public static bool leftStage = false;//还没写，切换场景的动画后续再说
     public static bool rightStage = false;
-    private float changeThreshold = 200f;
+    //切换场景的相关变量
     private float leftTimeThreshold = 0.5f;
     private float rightTimeThreshold = 0.5f;
     private float elapsedLeftTime = 0f;
     private float elapsedRightTime = 0f;
     private int leftHandSwitch = 0;
     private int rightHandSwitch = 0;
-
+    //放大缩小的相关变量
+    private float scaleThreshold = 1f;
+    private float elapsedScaleTime = 0f;
+    private int scaleSwitch = 0;
+    private float previousScale;
 
     void Awake()
     {
@@ -53,6 +58,7 @@ public class HandTracking : MonoBehaviour
     void Update()
     {
         string data = udpReceive.data;
+        // print(data);
         data = data.Remove(0, 1);
         data = data.Remove(data.Length-1, 1);
         string data1 = data;
@@ -109,7 +115,8 @@ public class HandTracking : MonoBehaviour
         {
             data1 =data1.Remove(0,data1.LastIndexOf("Right")+7);
             pointsRight = data1.Split(',');           
-            print("OnlyR"+pointsRight[0]+" flag:"+rightHandSwitch);
+            print("OnlyR"+pointsRight[0]+" flag1:"+rightHandSwitch+" "+ pointsRight[3] +" flag2:"+scaleSwitch);
+            //判断切换场景
             //把pointsRight[0]转换为float的currentRightPosition
             float currentRightPosition = float.Parse(pointsRight[0]);
             //添加计时，如果在一定时间内data1[0]2s内增加超过200，就跳转到下一个场景
@@ -141,6 +148,45 @@ public class HandTracking : MonoBehaviour
                 return;
             }
             previousRightPosition = currentRightPosition;
+            //判断放大缩小
+            float currentScale = float.Parse(pointsRight[3]);
+            if(scaleSwitch==1 && Math.Abs(currentScale-previousScale)>7f){
+                if(currentScale-previousScale>0){
+                    //放大
+                    scaleSwitch=4;//检测一段时间后再放大
+                }else{
+                    //缩小
+                    scaleSwitch=2;//检测一段时间后再缩小
+                }
+            }
+            else if(scaleSwitch==0 && Math.Abs(currentScale-previousScale)>5){
+                elapsedScaleTime = 0f;
+            }else if( (scaleSwitch==2||scaleSwitch==4) && Math.Abs(currentScale-previousScale)>5){
+                scaleSwitch=0;
+                elapsedScaleTime = 0f;
+            }else{
+                if(scaleSwitch!=1){
+                    elapsedScaleTime += Time.deltaTime;
+                    if(elapsedScaleTime > scaleThreshold){
+                        scaleSwitch++;
+                        elapsedScaleTime = 0f;
+                    }
+                }
+            }
+            if(scaleSwitch==2){
+                //放大
+                //获取原来的scale
+                float oldScale = scaleTransform.localScale.x;
+                scaleTransform.localScale = new Vector3(oldScale+0.1f, oldScale+0.1f, oldScale+0.1f);
+                scaleSwitch=0;
+            }else if(scaleSwitch==4){
+                //缩小
+                //获取原来的scale
+                float oldScale = scaleTransform.localScale.x;
+                scaleTransform.localScale = new Vector3(oldScale-0.1f, oldScale-0.1f, oldScale-0.1f);
+                scaleSwitch=0;
+            }
+            previousScale = currentScale;
         }
 
         //updateLandmarkPosition 更新手部关键点位置

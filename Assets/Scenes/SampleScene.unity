@@ -562,6 +562,7 @@ MonoBehaviour:
   - {fileID: 1790744463}
   - {fileID: 618447764}
   thumbModelLength: 0.03
+  scaleTransform: {fileID: 1305212506}
   LinkType: Right
 --- !u!1 &207550822
 GameObject:
@@ -1142,6 +1143,7 @@ MonoBehaviour:
   - {fileID: 470792644}
   - {fileID: 2124643244}
   thumbModelLength: 0.03
+  scaleTransform: {fileID: 1305212506}
   LinkType: Left
 --- !u!1 &378513902
 GameObject:
@@ -3765,6 +3767,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 400324, guid: 412b92d4feeb9c548bfa98f62c4d1022, type: 3}
   m_PrefabInstance: {fileID: 1495995257}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1305212506 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 06ef0eadd55179c4d964840a4fdc3f5f, type: 3}
+  m_PrefabInstance: {fileID: 2050535948}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1340426034
 GameObject:

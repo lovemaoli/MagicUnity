@@ -69,7 +69,7 @@ public class testChill : MonoBehaviour
     private void DistanceIndex()
     {
         float DistanceIH;
-        DistanceIH = (hands.transform.position - Index.transform.position).magnitude;
+        DistanceIH = (hands.transform.position - Index.transform.position).magnitude; 
         if(DistanceIH>0.1)
         {
             firetype="stopfire";
@@ -79,7 +79,7 @@ public class testChill : MonoBehaviour
         {
             firetype="fire";
         }
-        print(firetype+DistanceIH);
+        // print(firetype+DistanceIH);
     }
     [DllImport("user32.dll", EntryPoint = "keybd_event")]
     static extern void keybd_event
