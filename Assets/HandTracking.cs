@@ -57,6 +57,16 @@ public class HandTracking : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //识别按空格键切换下一个场景
+        if(Input.GetKeyDown(KeyCode.Space)){
+            udpReceive.close();
+            if(SceneManager.GetActiveScene().buildIndex == SceneManager.sceneCountInBuildSettings-1){
+                SceneManager.LoadScene(0);
+            }else{
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+            }
+            return;
+        }
         string data = udpReceive.data;
         // print(data);
         data = data.Remove(0, 1);

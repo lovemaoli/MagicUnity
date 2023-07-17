@@ -12,6 +12,8 @@ public class ObjectTracking : MonoBehaviour
     // Start is called before the first frame update
     public UDPReceive2 udpReceive;
     public GameObject seeObj1;
+    public GameObject bear;
+    public GameObject boat;
     void Awake()
     {
 
@@ -27,6 +29,14 @@ public class ObjectTracking : MonoBehaviour
             //显示鸟
             print("获取到bird");
             seeObj1.active = true;
+        }
+        if (data=="bear")
+        {  
+            bear.active = true;
+        }
+        if (data=="boat")
+        {
+            boat.active = true;
         }
     }
 }

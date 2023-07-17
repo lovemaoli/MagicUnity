@@ -9771,6 +9771,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   udpReceive: {fileID: 1320122395}
   seeObj1: {fileID: 246857490}
+  bear: {fileID: 0}
+  boat: {fileID: 0}
 --- !u!114 &1320122395
 MonoBehaviour:
   m_ObjectHideFlags: 0
